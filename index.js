@@ -1,15 +1,21 @@
+require('dotenv').config({ path: 'sample.env' });
 const express = require('express')
 const app = express()
 const cors = require('cors')
-require('dotenv').config()
+
 const { MongoClient } = require('mongodb');
 const dns = require('dns');
 const urlparser = require('url');
 
-const myMongo = new MongoClient('mongodb+srv://new-user-mario:2czA7Hwmv9hDddhS@cluster0.6yumhe1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0');
 
-  
 
+const mongoUri = process.env.MONGO_URI;
+
+if (!mongoUri) {
+  throw new Error("MongoDB URI not set in environment variables");
+}
+
+const myMongo = new MongoClient(mongoUri);
 
 const db = myMongo.db('list');
 const exercises = db.collection ('exercises');
@@ -27,15 +33,29 @@ app.post ("/api/users", async (req, res) => {
 
   
   const newUser = {
-    username: username
+    username: username,
+  
   }
 
   const User = await users.insertOne(newUser);
-  console.log("New User created");
+  //console.log("New User created");
   res.json({
-    username: username
-
+    username: username,
+    _id: User.insertedId
   })
+})
+
+app.get ("/api/users", async (req, res) => {
+  
+  try{
+    const list = await users.find().toArray();
+  //stampa la lista di tutti gli utenti
+  res.json (list)
+}
+catch (err){
+  res.json("An error occured...")
+}
+  
 })
 
 
