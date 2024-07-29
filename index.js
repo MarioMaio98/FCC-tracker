@@ -2,8 +2,8 @@ require('dotenv').config({ path: 'sample.env' });
 const express = require('express')
 const app = express()
 const cors = require('cors')
+const { MongoClient, ObjectId } = require('mongodb');
 
-const { MongoClient } = require('mongodb');
 const dns = require('dns');
 const urlparser = require('url');
 
@@ -43,6 +43,40 @@ app.post ("/api/users", async (req, res) => {
     username: username,
     _id: User.insertedId
   })
+})
+
+app.post ("/api/users/:_id/exercises", async (req, res) => {
+  const id = req.params._id;
+  const desc = req.body.description;
+  const duration = req.body.duration;
+  let date = new Date (req.body.date);
+  const user = await users.findOne({ _id: new ObjectId(id) });
+  if (!date || isNaN(date.getTime())) {
+    date = new Date(); 
+  }
+
+  if (!user) {
+    return res.json("user not found")
+  }
+
+    
+  const newExercise = {
+    id: id,
+    description: desc,
+    duration: duration,
+    date: date
+  }
+
+  const exercise = await exercises.insertOne(newExercise)
+
+  res.json ({
+    id: id,
+    description: desc,
+    duration: duration,
+    date: date
+  })
+
+  
 })
 
 app.get ("/api/users", async (req, res) => {
